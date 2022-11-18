@@ -1,48 +1,114 @@
+import torch
 import torch.nn as nn
 
 
-class LeNet(nn.Module):
-    def __init__(self):
+class VGG(nn.Module):
+    def __init__(self, cfg, num_classes=100):
         """
         * 모델 구조 정의
+        :param cfg: VGG 모델 옵션 (VGGNet feature extractor 옵션)
+        :param num_classes: 출력 클래스 개수
         """
 
-        super(LeNet, self).__init__()
+        super(VGG, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=6, kernel_size=5, stride=1, padding=0)
-        self.tanh1 = nn.Tanh()
-        self.avg_pool1 = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
-        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5, stride=1, padding=0)
-        self.tanh2 = nn.Tanh()
-        self.avg_pool2 = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
-        self.conv3 = nn.Conv2d(in_channels=16, out_channels=120, kernel_size=5, stride=1, padding=0)
-        self.fc1 = nn.Linear(in_features=120, out_features=84)
-        self.fc2 = nn.Linear(in_features=84, out_features=6)
+        # feature extractor
+        self.features = make_layers(cfg=cfg)
+
+        # classifier
+        self.classifier = nn.Sequential(
+            nn.Linear(in_features=512 * 7 * 7, out_features=4096),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(in_features=4096, out_features=4096),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(in_features=4096, out_features=num_classes)
+        )
 
     def forward(self, x):
         """
         * 순전파
-        :param x: 배치 개수 만큼의 입력. (N, 3, 32, 32)
-        :return: 배치 개수 만큼의 출력. (N, 6)
+        :param x: 배치 개수 만큼의 입력. (N, 3, 224, 224)
+        :return: 배치 개수 만큼의 출력. (N, 100)
         """
 
-        # (N, 3, 32, 32) -> (N, 6, 28, 28)
-        x = self.conv1(x)
-        x = self.tanh1(x)
-        # (N, 6, 28, 28) -> (N, 6, 14, 14)
-        x = self.avg_pool1(x)
-        # (N, 6, 14, 14) -> (N, 16, 10, 10)
-        x = self.conv2(x)
-        x = self.tanh2(x)
-        # (N, 16, 10, 10) -> (N, 16, 5, 5)
-        x = self.avg_pool2(x)
-        # (N, 16, 5, 5) -> (N, 120, 1, 1)
-        x = self.conv3(x)
-        # (N, 120, 1, 1) -> (N, 120)
-        x = x.view(-1, 120)
-        # (N, 120) -> (N, 84)
-        x = self.fc1(x)
-        # (N, 84) -> (N, 6)
-        x = self.fc2(x)
+        # (N, 3, 224, 224) -> (N, 512, 7, 7)
+        x = self.features(x)
+        # (N, 512, 7, 7) -> (N, 512 * 7 * 7)
+        x = torch.flatten(x, 1)
+        # (N, 512 * 7 * 7) -> (N, 100)
+        x = self.classifier(x)
 
         return x
+
+
+def make_layers(cfg):
+    """
+    * VGGNet feature extractor
+    :param cfg: 'A', 'B', 'D', 'E' 중에 선택 (VGG-11, VGG-13, VGG-16, VGG-19)
+    :return: VGGNet feature extractor 만들어 줌
+    """
+
+    # VGGNet feature extractor 담을 리스트
+    layers = []
+
+    in_channels = 3
+    for v in cfg:
+        if v == 'M':
+            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+        else:
+            layers += [nn.Conv2d(in_channels=in_channels, out_channels=v, kernel_size=3, stride=1, padding=1)]
+            layers += [nn.ReLU()]
+            in_channels = v
+
+    return nn.Sequential(*layers)
+
+
+# VGG 모델 옵션 (VGGNet feature extractor 옵션)
+cfgs = {
+    # VGG-11
+    'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    # VGG-13
+    'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    # VGG-16
+    'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+    # VGG-19
+    'E': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M']
+}
+
+
+def vgg11():
+    """
+    * VGG-11
+    :return: VGG 11-layer 모델
+    """
+
+    return VGG(cfg=cfgs['A'])
+
+
+def vgg13():
+    """
+    * VGG-13
+    :return: VGG 13-layer 모델
+    """
+
+    return VGG(cfg=cfgs['B'])
+
+
+def vgg16():
+    """
+    * VGG-16
+    :return: VGG 16-layer 모델
+    """
+
+    return VGG(cfg=cfgs['D'])
+
+
+def vgg19():
+    """
+    * VGG-19
+    :return: VGG 19-layer 모델
+    """
+
+    return VGG(cfg=cfgs['E'])

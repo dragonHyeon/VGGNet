@@ -1,5 +1,5 @@
-# PyTorch Code Template
-- 파이토치 딥 러닝 템플릿 코드
+# PyTorch VGGNet
+- 파이토치 Very Deep Convolutional Networks for Large-Scale Image Recognition
 ___
 ### 프로그램 실행 방법
 - 학습
@@ -15,19 +15,7 @@ ___
 ---
 ### 프로그램 구조
 - Main/run_train.py 및 Main/run_test.py 에서 디바이스, 모델, optimizer, dataloader, 손실 함수, metric 등 모두 선언 및 실행
+- 모델 선언은 DeepLearning/model.py 에서 미리 선언되어 있는 모델들중에서 가져올 것. (vgg11, vgg13, vgg16, vgg19)
 ---
-### 추후 프로그램 modification 방법
-- model:
-  - DeepLearning/model.py 수정
-- 학습:
-  - DeepLearning/train.py 에서 Trainer._train 수정
-  - 세부 학습 조건은 DeepLearning/train.py 에서 Trainer.running 수정
-- 테스트:
-  - DeepLearning/test.py 에서 Tester._test 수정
-  - 세부 테스트 조건은 DeepLearning/test.py 에서 Tester.running 수정
-- 데이터셋:
-  - DeepLearning/dataloader.py 수정
-- 손실 함수:
-  - DeepLearning/loss.py 수정
-- metric:
-  - DeepLearning/metric.py 수정
+### 참조
+https://github.com/MV-CuttingEdgeAI/YHKim-DeepLearningStudy

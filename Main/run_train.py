@@ -125,8 +125,8 @@ def run_program(args):
     from Common import ConstVar
     from DeepLearning.train import Trainer
     from DeepLearning.test import Tester
-    from DeepLearning.dataloader import SIGNSDataset
-    from DeepLearning.model import LeNet
+    from DeepLearning.dataloader import CIFAR100_train, CIFAR100_test
+    from DeepLearning.model import vgg16
     from DeepLearning.loss import loss_fn
     from DeepLearning.metric import accuracy
 
@@ -134,7 +134,7 @@ def run_program(args):
     device = ConstVar.DEVICE_CUDA if torch.cuda.is_available() else ConstVar.DEVICE_CPU
 
     # 모델 선언
-    model = LeNet()
+    model = vgg16()
     # 모델을 해당 디바이스로 이동
     model.to(device)
 
@@ -143,14 +143,12 @@ def run_program(args):
                                     lr=args.learning_rate)
 
     # 학습용 데이터로더 선언
-    train_dataloader = DataLoader(dataset=SIGNSDataset(data_dir=args.train_data_dir,
-                                                       mode_train_test=ConstVar.MODE_TRAIN),
+    train_dataloader = DataLoader(dataset=CIFAR100_train,
                                   batch_size=args.batch_size,
                                   shuffle=args.shuffle)
 
     # 테스트용 데이터로더 선언
-    test_dataloader = DataLoader(dataset=SIGNSDataset(data_dir=args.test_data_dir,
-                                                      mode_train_test=ConstVar.MODE_TEST))
+    test_dataloader = DataLoader(dataset=CIFAR100_test)
 
     # 모델 학습 객체 선언
     trainer = Trainer(model=model,
