@@ -3,11 +3,12 @@ import torch.nn as nn
 
 
 class VGG(nn.Module):
-    def __init__(self, cfg, num_classes=100):
+    def __init__(self, cfg, num_classes=100, init_weights=True):
         """
         * 모델 구조 정의
         :param cfg: VGG 모델 옵션 (VGGNet feature extractor 옵션)
         :param num_classes: 출력 클래스 개수
+        :param init_weights: 가중치 초기화 여부
         """
 
         super(VGG, self).__init__()
@@ -26,6 +27,10 @@ class VGG(nn.Module):
             nn.Linear(in_features=4096, out_features=num_classes)
         )
 
+        # 가중치 초기화
+        if init_weights:
+            self._initialize_weights()
+
     def forward(self, x):
         """
         * 순전파
@@ -41,6 +46,24 @@ class VGG(nn.Module):
         x = self.classifier(x)
 
         return x
+
+    def _initialize_weights(self):
+        """
+        * 모델 가중치 초기화
+        :return: 모델 가중치 초기화 진행됨
+        """
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(tensor=m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(tensor=m.bias, val=0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(tensor=m.weight, val=1)
+                nn.init.constant_(tensor=m.bias, val=0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(tensor=m.weight, mean=0, std=0.01)
+                nn.init.constant_(tensor=m.bias, val=0)
 
 
 def make_layers(cfg):
