@@ -3,10 +3,11 @@ import torch.nn as nn
 
 
 class VGG(nn.Module):
-    def __init__(self, cfg, num_classes=100, init_weights=True):
+    def __init__(self, cfg, in_channels, num_classes, init_weights):
         """
         * 모델 구조 정의
         :param cfg: VGG 모델 옵션 (VGGNet feature extractor 옵션)
+        :param in_channels: in_channels 수
         :param num_classes: 출력 클래스 개수
         :param init_weights: 가중치 초기화 여부
         """
@@ -14,7 +15,7 @@ class VGG(nn.Module):
         super(VGG, self).__init__()
 
         # feature extractor
-        self.features = make_layers(cfg=cfg)
+        self.features = make_layers(cfg=cfg, in_channels=in_channels)
 
         # classifier
         self.classifier = nn.Sequential(
@@ -34,15 +35,15 @@ class VGG(nn.Module):
     def forward(self, x):
         """
         * 순전파
-        :param x: 배치 개수 만큼의 입력. (N, 3, 224, 224)
-        :return: 배치 개수 만큼의 출력. (N, 100)
+        :param x: 배치 개수 만큼의 입력. (N, in_channels (3), 224, 224)
+        :return: 배치 개수 만큼의 출력. (N, num_classes (100))
         """
 
-        # (N, 3, 224, 224) -> (N, 512, 7, 7)
+        # (N, in_channels (3), 224, 224) -> (N, 512, 7, 7)
         x = self.features(x)
         # (N, 512, 7, 7) -> (N, 512 * 7 * 7)
         x = torch.flatten(x, 1)
-        # (N, 512 * 7 * 7) -> (N, 100)
+        # (N, 512 * 7 * 7) -> (N, num_classes (100))
         x = self.classifier(x)
 
         return x
@@ -66,17 +67,17 @@ class VGG(nn.Module):
                 nn.init.constant_(tensor=m.bias, val=0)
 
 
-def make_layers(cfg):
+def make_layers(cfg, in_channels):
     """
     * VGGNet feature extractor
     :param cfg: 'A', 'B', 'D', 'E' 중에 선택 (VGG-11, VGG-13, VGG-16, VGG-19)
+    :param in_channels: in_channels 수
     :return: VGGNet feature extractor 만들어 줌
     """
 
     # VGGNet feature extractor 담을 리스트
     layers = []
 
-    in_channels = 3
     for v in cfg:
         if v == 'M':
             layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
@@ -101,37 +102,49 @@ cfgs = {
 }
 
 
-def vgg11():
+def vgg11(in_channels=3, num_classes=100, init_weights=True):
     """
     * VGG-11
+    :param in_channels: in_channels 수
+    :param num_classes: 출력 클래스 개수
+    :param init_weights: 가중치 초기화 여부
     :return: VGG 11-layer 모델
     """
 
-    return VGG(cfg=cfgs['A'])
+    return VGG(cfg=cfgs['A'], in_channels=in_channels, num_classes=num_classes, init_weights=init_weights)
 
 
-def vgg13():
+def vgg13(in_channels=3, num_classes=100, init_weights=True):
     """
     * VGG-13
+    :param in_channels: in_channels 수
+    :param num_classes: 출력 클래스 개수
+    :param init_weights: 가중치 초기화 여부
     :return: VGG 13-layer 모델
     """
 
-    return VGG(cfg=cfgs['B'])
+    return VGG(cfg=cfgs['B'], in_channels=in_channels, num_classes=num_classes, init_weights=init_weights)
 
 
-def vgg16():
+def vgg16(in_channels=3, num_classes=100, init_weights=True):
     """
     * VGG-16
+    :param in_channels: in_channels 수
+    :param num_classes: 출력 클래스 개수
+    :param init_weights: 가중치 초기화 여부
     :return: VGG 16-layer 모델
     """
 
-    return VGG(cfg=cfgs['D'])
+    return VGG(cfg=cfgs['D'], in_channels=in_channels, num_classes=num_classes, init_weights=init_weights)
 
 
-def vgg19():
+def vgg19(in_channels=3, num_classes=100, init_weights=True):
     """
     * VGG-19
+    :param in_channels: in_channels 수
+    :param num_classes: 출력 클래스 개수
+    :param init_weights: 가중치 초기화 여부
     :return: VGG 19-layer 모델
     """
 
-    return VGG(cfg=cfgs['E'])
+    return VGG(cfg=cfgs['E'], in_channels=in_channels, num_classes=num_classes, init_weights=init_weights)
