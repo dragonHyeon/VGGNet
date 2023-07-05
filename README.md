@@ -17,5 +17,12 @@ ___
 - Main/run_train.py 및 Main/run_test.py 에서 디바이스, 모델, optimizer, dataloader, 손실 함수, metric 등 모두 선언 및 실행
 - 모델 선언은 DeepLearning/model.py 에서 미리 선언되어 있는 모델들중에서 가져올 것. (vgg11, vgg13, vgg16, vgg19)
 ---
+### 실행 결과물
+- Training progress
+<p align="center">
+    <img width="500" src="./IMGS/training_progress.png" alt="Training progress">
+</p>
+
+---
 ### 참조
 https://github.com/MV-CuttingEdgeAI/YHKim-DeepLearningStudy
